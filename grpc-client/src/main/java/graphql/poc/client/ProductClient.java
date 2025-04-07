@@ -2,7 +2,6 @@ package graphql.poc.client;
 
 import com.google.protobuf.Empty;
 import dev.product.*;
-
 import io.grpc.Channel;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
@@ -11,35 +10,50 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+
+/**
+ * A classe ProductClient é responsável por interagir com o servidor gRPC.
+ * Ela utiliza os stubs gerados pelo gRPC para realizar chamadas de procedimento remoto.
+ */
 public class ProductClient {
 
     private final ProductServiceGrpc.ProductServiceBlockingStub blockingStub;
 
+    /**
+     * Construtor que inicializa o stub de bloqueio com o canal gRPC fornecido.
+     */
     public ProductClient(Channel channel) {
         blockingStub = ProductServiceGrpc.newBlockingStub(channel);
     }
 
-    // Create
+    /**
+     * Cria um novo produto chamando o RPC CreateProduct.
+     */
     public Product createProduct(String name, double price, int stock) {
-        return blockingStub.createProduct(
-                CreateProductRequest.newBuilder()
-                        .setName(name)
-                        .setPrice(price)
-                        .setStock(stock)
-                        .build()
-        );
+        CreateProductRequest request = CreateProductRequest.newBuilder()
+                .setName(name)
+                .setPrice(price)
+                .setStock(stock)
+                .build();
+
+        return blockingStub.createProduct(request);
     }
 
-    // Read (Single)
+    /**
+     * Recupera um produto pelo seu ID chamando o RPC GetProduct.
+     */
     public Product getProduct(String id) {
-        return blockingStub.getProduct(
-                GetProductRequest.newBuilder()
-                        .setId(id)
-                        .build()
-        );
+        GetProductRequest request = GetProductRequest.newBuilder()
+                .setId(id)
+                .build();
+
+        return blockingStub.getProduct(request);
     }
 
-    // Read (All)
+    /**
+     * Recupera todos os produtos chamando o RPC GetAllProducts.
+     * Faz o streaming dos produtos do servidor.
+     */
     public List<Product> getAllProducts() {
         Iterator<Product> products = blockingStub.getAllProducts(Empty.getDefaultInstance());
         List<Product> productList = new ArrayList<>();
@@ -47,65 +61,58 @@ public class ProductClient {
         return productList;
     }
 
-    // Update
+    /**
+     * Atualiza um produto existente chamando o RPC UpdateProduct.
+     */
     public Product updateProduct(String id, String name, double price, int stock) {
-        return blockingStub.updateProduct(
-                UpdateProductRequest.newBuilder()
-                        .setId(id)
-                        .setName(name)
-                        .setPrice(price)
-                        .setStock(stock)
-                        .build()
-        );
+        UpdateProductRequest request = UpdateProductRequest.newBuilder()
+                .setId(id)
+                .setName(name)
+                .setPrice(price)
+                .setStock(stock)
+                .build();
+
+        return blockingStub.updateProduct(request);
     }
 
-    // Delete
+    /**
+     * Exclui um produto pelo seu ID chamando o RPC DeleteProduct.
+     */
     public boolean deleteProduct(String id) {
-        return blockingStub.deleteProduct(
-                DeleteProductRequest.newBuilder()
-                        .setId(id)
-                        .build()
-        ).getSuccess();
+        DeleteProductRequest request = DeleteProductRequest.newBuilder()
+                .setId(id)
+                .build();
+
+        DeleteProductResponse response = blockingStub.deleteProduct(request);
+        return response.getSuccess();
     }
 
-    public static void main(String[] args) {
-        ManagedChannel channel = ManagedChannelBuilder.forTarget("localhost:50051")
+    /**
+     * Método principal para demonstrar o uso do cliente.
+     */
+    public static void main(String[] args) throws InterruptedException {
+        ManagedChannel channel = ManagedChannelBuilder.forAddress("localhost", 50051)
                 .usePlaintext()
                 .build();
 
         ProductClient client = new ProductClient(channel);
 
-        // Teste completo do CRUD
-        try {
-            // Create
-            Product newProduct = client.createProduct("Smartphone", 2500.00, 15);
-            System.out.println("Criado: " + newProduct);
+        // Example usage
+        Product product = client.createProduct("Laptop", 1500.00, 5);
+        System.out.println("Created Product: " + product);
 
-            // Read
-            Product retrieved = client.getProduct(newProduct.getId());
-            System.out.println("Consultado: " + retrieved);
+        Product fetchedProduct = client.getProduct(product.getId());
+        System.out.println("Fetched Product: " + fetchedProduct);
 
-            // Update
-            Product updated = client.updateProduct(
-                    newProduct.getId(),
-                    "Smartphone Premium",
-                    2999.99,
-                    10
-            );
-            System.out.println("Atualizado: " + updated);
+        List<Product> allProducts = client.getAllProducts();
+        System.out.println("All Products: " + allProducts);
 
-            // List All
-            System.out.println("Todos produtos:");
-            client.getAllProducts().forEach(System.out::println);
+        Product updatedProduct = client.updateProduct(product.getId(), "Gaming Laptop", 2000.00, 3);
+        System.out.println("Updated Product: " + updatedProduct);
 
-            // Delete
-            boolean deleted = client.deleteProduct(newProduct.getId());
-            System.out.println("Deletado? " + deleted);
+        boolean isDeleted = client.deleteProduct(product.getId());
+        System.out.println("Product Deleted: " + isDeleted);
 
-        } finally {
-            channel.shutdown();
-        }
+        channel.shutdownNow().awaitTermination(5, TimeUnit.SECONDS);
     }
-
-
 }
