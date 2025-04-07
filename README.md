@@ -92,3 +92,96 @@ Este projeto demonstra uma aplicação baseada em gRPC para gerenciamento de pro
 - [Spring Boot](https://spring.io/projects/spring-boot)
 - [Protocol Buffers](https://developers.google.com/protocol-buffers)
 
+# gRPC CRUD Example
+
+Este projeto demonstra a implementação de um servidor gRPC que realiza operações CRUD (Create, Read, Update, Delete) para gerenciar produtos. Abaixo está uma explicação do fluxo lógico do gRPC no contexto deste CRUD.
+
+## Fluxo Lógico do gRPC no CRUD
+
+1. **Definição do Serviço no Proto File**:
+   - O serviço `ProductService` é definido em um arquivo `.proto`, especificando os métodos gRPC disponíveis, como `CreateProduct`, `GetProduct`, `GetAllProducts`, `UpdateProduct` e `DeleteProduct`.
+   - Cada método tem suas mensagens de requisição e resposta definidas no mesmo arquivo.
+
+2. **Geração do Código Stub**:
+   - O arquivo `.proto` é compilado usando o `protoc` para gerar as classes Java necessárias, incluindo as mensagens e a interface do serviço.
+
+3. **Implementação do Serviço**:
+   - A classe `ProductServer` implementa o serviço `ProductService` gerado pelo `protoc`.
+   - A lógica de negócios para cada método gRPC é implementada na classe interna `ProductServiceImpl`.
+
+4. **Fluxo de Cada Operação CRUD**:
+   - **CreateProduct**:
+     - Recebe uma requisição contendo os detalhes do produto.
+     - Gera um ID único para o produto e o armazena em um mapa em memória.
+     - Retorna o produto criado como resposta.
+   - **GetProduct**:
+     - Recebe um ID de produto como entrada.
+     - Busca o produto no mapa em memória.
+     - Retorna o produto encontrado ou um erro `NOT_FOUND` se o produto não existir.
+   - **GetAllProducts**:
+     - Não recebe parâmetros.
+     - Faz o streaming de todos os produtos armazenados no mapa para o cliente.
+   - **UpdateProduct**:
+     - Recebe um ID de produto e os novos detalhes do produto.
+     - Atualiza os detalhes do produto existente no mapa.
+     - Retorna o produto atualizado ou um erro `NOT_FOUND` se o produto não existir.
+   - **DeleteProduct**:
+     - Recebe um ID de produto como entrada.
+     - Remove o produto correspondente do mapa.
+     - Retorna uma resposta indicando sucesso ou um erro `NOT_FOUND` se o produto não existir.
+
+5. **Execução do Servidor**:
+   - O servidor gRPC é iniciado na porta `50051` usando a classe `ProductServer`.
+   - A implementação do serviço `ProductServiceImpl` é registrada no servidor.
+   - O servidor permanece ativo até ser encerrado manualmente ou por um hook de desligamento.
+
+6. **Comunicação Cliente-Servidor**:
+   - O cliente gRPC se comunica com o servidor enviando requisições para os métodos definidos no serviço.
+   - O servidor processa as requisições, executa a lógica de negócios e retorna as respostas apropriadas.
+
+## Estrutura do Projeto
+
+- **`ProductServer.java`**: Contém a implementação do servidor gRPC e a lógica do CRUD.
+- **`proto`**: Diretório contendo o arquivo `.proto` que define o serviço e as mensagens.
+
+## Como Executar
+
+1. Compile o arquivo `.proto` para gerar as classes Java.
+2. Compile o projeto Java.
+3. Inicie o servidor executando a classe `ProductServer`.
+4. Use um cliente gRPC para testar as operações CRUD.
+
+## Exemplo de Uso
+
+- Criar um produto:
+  ```
+  CreateProductRequest {
+    name: "Produto A",
+    price: 100.0,
+    stock: 50
+  }
+  ```
+- Obter um produto:
+  ```
+  GetProductRequest {
+    id: "123e4567-e89b-12d3-a456-426614174000"
+  }
+  ```
+- Atualizar um produto:
+  ```
+  UpdateProductRequest {
+    id: "123e4567-e89b-12d3-a456-426614174000",
+    name: "Produto A Atualizado",
+    price: 120.0,
+    stock: 40
+  }
+  ```
+- Excluir um produto:
+  ```
+  DeleteProductRequest {
+    id: "123e4567-e89b-12d3-a456-426614174000"
+  }
+  ```
+
+Este fluxo lógico garante que o servidor gRPC seja eficiente e fácil de entender, permitindo a manipulação de produtos de forma simples e escalável.
+
