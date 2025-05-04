@@ -63,8 +63,11 @@ Este projeto demonstra uma aplicação baseada em gRPC para gerenciamento de pro
 3. **Executar o Cliente**:
    ```bash
    cd grpc-client
-   mvn exec:java -Dexec.mainClass="graphql.poc.client.ProductClient"
+   mvn exec:java
+   
    ```
+
+/* mvn exec:java -Dexec.mainClass="graphql.poc.client.ProductClient" */
 
 ### Exemplo de Uso
 

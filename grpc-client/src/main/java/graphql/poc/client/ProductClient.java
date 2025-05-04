@@ -30,6 +30,7 @@ public class ProductClient {
      * Cria um novo produto chamando o RPC CreateProduct.
      */
     public Product createProduct(String name, double price, int stock) {
+        System.out.println("Criando um produto: " + name);
         CreateProductRequest request = CreateProductRequest.newBuilder()
                 .setName(name)
                 .setPrice(price)
@@ -43,6 +44,7 @@ public class ProductClient {
      * Recupera um produto pelo seu ID chamando o RPC GetProduct.
      */
     public Product getProduct(String id) {
+        System.out.println("Recuperando o produto: " + id);
         GetProductRequest request = GetProductRequest.newBuilder()
                 .setId(id)
                 .build();
@@ -55,6 +57,7 @@ public class ProductClient {
      * Faz o streaming dos produtos do servidor.
      */
     public List<Product> getAllProducts() {
+        System.out.println("Recuperando todos os produto");
         Iterator<Product> products = blockingStub.getAllProducts(Empty.getDefaultInstance());
         List<Product> productList = new ArrayList<>();
         products.forEachRemaining(productList::add);
@@ -65,6 +68,7 @@ public class ProductClient {
      * Atualiza um produto existente chamando o RPC UpdateProduct.
      */
     public Product updateProduct(String id, String name, double price, int stock) {
+        System.out.println("Atualizando o produto: " + id);
         UpdateProductRequest request = UpdateProductRequest.newBuilder()
                 .setId(id)
                 .setName(name)
@@ -79,6 +83,7 @@ public class ProductClient {
      * Exclui um produto pelo seu ID chamando o RPC DeleteProduct.
      */
     public boolean deleteProduct(String id) {
+        System.out.println("Excluindo o produto: " + id);
         DeleteProductRequest request = DeleteProductRequest.newBuilder()
                 .setId(id)
                 .build();
